@@ -7,8 +7,8 @@ CARGO ?= cargo
 RUSTFLAGS ?= -g
 
 # List of shared libraries to be built
-LIBS = libcspinlock.so 
-
+#LIBS = libcspinlock.so liblockhashmap.so liblockfreehashmap.so
+LIBS = libcspinlock.so liblockhashmap.so
 # This target builds all executables and shared libraries for tests
 all: $(LIBS)
 
@@ -17,8 +17,8 @@ libcspinlock.so: cspinlock.c
 	$(CC) $(CFLAGS) -shared -o $@ $< -ldl
 
 # Rule to build liblockhashmap.so
-#liblockhashmap.so: lockhashmap.c
-#	$(CC) $(CFLAGS) -shared -o $@ $< -ldl
+liblockhashmap.so: lockhashmap.c
+	$(CC) $(CFLAGS) -shared -o $@ $< -L. -lcspinlock -ldl
 
 # Rule to build liblockfreehashmap.so
 #liblockfreehashmap.so: lockfreehashmap.c

@@ -1,5 +1,5 @@
 #include <stddef.h>
-
+#include "cspinlock.h"
 #define PAD 64
 
 /*
@@ -11,28 +11,31 @@ bucketN -> sentinel -> NULL
 */
 
 //define a node in the hashmap
-/*typedef struct Node_HM_t
+typedef struct Node_HM_t
 {
 	long m_val; //value of the node
 	char padding[PAD];
 	struct Node_HM_t* m_next; //pointer to next node in the bucket
-} Node_HM;*/
+} Node_HM;
 typedef struct Node_HM_t Node_HM;
 
-/*defining a bucket in the hashmap
+//defining a bucket in the hashmap
 typedef struct List_t
 {
+	cspinlock_t* lock ;
 	Node_HM* sentinel; //list of nodes in a bucket
 } List;
-*/
+
 typedef struct List_t List;
 
-/*defining the hashmap
+//defining the hashmap
 typedef struct hm_t
 {
+		cspinlock_t* lock ;
+		size_t nbuckets ; 
         List** buckets; //list of buckets in the hashmap
 } HM;
-*/
+
 typedef struct hm_t HM;
 
 //allocate a hashmap with given number of buckets
