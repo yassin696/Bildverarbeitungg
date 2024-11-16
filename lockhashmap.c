@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <time.h>
 #include <unistd.h>
-
     
 HM* alloc_hashmap(size_t n_buckets){
     HM* hm=(HM*) (malloc(sizeof(HM)));
@@ -25,6 +24,7 @@ HM* alloc_hashmap(size_t n_buckets){
         if (!hm->buckets[i]->sentinel) { 
             free(hm->buckets[i]);
             free(hm->buckets);
+            free(hm->lock);
             free(hm);
             return NULL;
         }
@@ -43,7 +43,7 @@ void free_hashmap(HM* hm){
             free(aux);
             current = current->m_next;
         }
-        free(hm->buckets[i]->sentinel); 
+        free(hm->buckets[i]->sentinel); // Free the sentinel node
         free(hm->buckets[i]);
     }
     free(hm->buckets);
@@ -55,17 +55,7 @@ void free_hashmap(HM* hm){
 int insert_item(HM* hm, long val){
     int nb = labs(val) % (hm->nbuckets);
     cspin_lock(hm->lock);
-    Node_HM* current = hm->buckets[nb]->sentinel->m_next;
-
-    while(current){
-        if(current->m_val ==val) {
-            printf("value already exists \n");
-            cspin_unlock(hm->lock);
-            return 0;
-        }
-        current = current->m_next;
-    }
-
+    
     Node_HM* new_node = (Node_HM*) (malloc(sizeof(Node_HM)));
     if (!new_node) {
         cspin_unlock(hm->lock);
@@ -79,23 +69,23 @@ int insert_item(HM* hm, long val){
     return 0;
 }
 
-int lookup_item(HM* hm, long val){
+int lookup_item(HM* hm, long val) {
     int nb = labs(val) % (hm->nbuckets);
     List* bucket = hm->buckets[nb];
     cspin_lock(hm->lock);
     Node_HM* current = bucket->sentinel->m_next;
-    
-    while(current){
-        if(current->m_val ==val) {
+
+    while (current) {
+        if (current->m_val == val) {
             cspin_unlock(hm->lock);
-            return 0;
+            return 0; // Found the value
         }
         current = current->m_next;
     }
     cspin_unlock(hm->lock);
-    printf("value doesn't exist \n");
-    return 1;
+    return 1; // Value not found
 }
+
 
 int remove_item(HM* hm, long val){
     int nb = labs(val) % (hm->nbuckets);
@@ -106,7 +96,6 @@ int remove_item(HM* hm, long val){
     
     while(current){
         if(current->m_val == val) {
-            printf("value found \n");
             previous->m_next = current->m_next;
             free(current);
             cspin_unlock(hm->lock);
@@ -116,29 +105,29 @@ int remove_item(HM* hm, long val){
         current = current->m_next;
     }
     cspin_unlock(hm->lock);
-    printf("value doesn't exist \n");
     return 1;
 }
 
 void print_hashmap(HM* hm) {
+   // printf("1500 -\n");
+    // Iterate over all the buckets in the hashmap
     for (int i = 0; i < hm->nbuckets; i++) {
         List* bucket = hm->buckets[i];
-        cspin_lock(hm->lock);
-        printf("Bucket %d: ", i + 1);
-
         Node_HM* current = bucket->sentinel->m_next;
-        if (current == NULL) {
-            printf("Empty\n");
-        } else {
-            while (current) {
-                printf("%ld ", current->m_val);
-                current = current->m_next;
-            }
-            printf("\n");
+
+        // Print the bucket header to stderr
+        printf( "Bucket %d", i + 1);
+
+        // Print all the values in the current bucket to stderr
+        while (current) {
+            printf(" - %ld", current->m_val); // Print the value
+            current = current->m_next; // Move to the next node in the bucket
         }
 
-        cspin_unlock(hm->lock);
+        // Move to the next line after printing all elements in the bucket
+        printf( "\n");
     }
 }
+
 
 
