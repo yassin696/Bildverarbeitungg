@@ -25,6 +25,7 @@ typedef struct List_t
 {
 	atomic_int lockk;
 	cspinlock_t* lock ;
+	atomic_uint version;
 	Node_HM* sentinel; //list of nodes in a bucket
 } List;
 
