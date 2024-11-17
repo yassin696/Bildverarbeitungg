@@ -90,7 +90,6 @@ int insert_item(HM* hm, long val) {
     size_t nb = (size_t)labs(val) % hm->nbuckets;
     List* bucket = hm->buckets[nb];
     
-    // Lock only the target bucket
     if (cspin_lock(bucket->lock) != 0) return 1;
 
     Node_HM* new_node = (Node_HM*)malloc(sizeof(Node_HM));
@@ -135,7 +134,6 @@ int remove_item(HM* hm, long val) {
     size_t nb = (size_t)labs(val) % hm->nbuckets;
     List* bucket = hm->buckets[nb];
 
-    // Lock only the target bucket
     if (cspin_lock(bucket->lock) != 0) return 1;
 
     Node_HM* current = bucket->sentinel->m_next;
@@ -162,7 +160,6 @@ void print_hashmap(HM* hm) {
     for (size_t i = 0; i < hm->nbuckets; i++) {
         List* bucket = hm->buckets[i];
         
-        // Lock each bucket before printing
         if (cspin_lock(bucket->lock) == 0) {
             Node_HM* current = bucket->sentinel->m_next;
 
