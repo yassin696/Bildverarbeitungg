@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include "cspinlock.h"
+#include <stdatomic.h>
 #define PAD 64
 
 /*
@@ -22,6 +23,7 @@ typedef struct Node_HM_t Node_HM;
 //defining a bucket in the hashmap
 typedef struct List_t
 {
+	atomic_int lockk;
 	cspinlock_t* lock ;
 	Node_HM* sentinel; //list of nodes in a bucket
 } List;
@@ -29,11 +31,10 @@ typedef struct List_t
 typedef struct List_t List;
 
 //defining the hashmap
-typedef struct hm_t
-{
-		cspinlock_t* lock ;
-		size_t nbuckets ; 
-        List** buckets; //list of buckets in the hashmap
+typedef struct hm_t {
+    List** buckets;
+    size_t nbuckets;
+     // Add this field
 } HM;
 
 typedef struct hm_t HM;

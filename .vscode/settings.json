@@ -1,6 +1,6 @@
 {
     "files.associations": {
-        "cspinlock.c": "cpp",
+       
         "stdio.h": "c"
     }
 }
